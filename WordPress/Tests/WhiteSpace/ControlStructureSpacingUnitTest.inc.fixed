@@ -12,7 +12,7 @@ if ( true ) {
 } else { //Are we allowed to comment here? If not, message is wrong
 	// ...
 }
-
+testing
 // bad
 if ( 'update' === $option_operation['operation'] ) {
 	update_option( $option_operation['option_name'], $option_operation['old_value'] );
