@@ -119,4 +119,13 @@
 
 	<rule ref="WordPress.DB.RestrictedClasses"/>
 
+	<rule ref="Squiz.Commenting.LongConditionClosingComment">
+		<properties>
+			<property name="lineLimit" value="35" />
+			<property name="commentFormat" value="// End %s()." />
+		</properties>
+		<exclude name="Squiz.Commenting.LongConditionClosingComment.SpacingBefore" />
+	</rule>
+
+
 </ruleset>
