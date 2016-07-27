@@ -66,25 +66,23 @@ class WordPress_Sniffs_PHP_StrictInArraySniff extends WordPress_Sniff {
 			return;
 		}
 
-		if ( ! isset( $tokens[ ( $stackPtr - 1 ) ] ) ) {
-			return;
-		}
+		if ( isset( $tokens[ ( $stackPtr - 1 ) ] ) ) {
+			$prev = $phpcsFile->findPrevious( PHP_CodeSniffer_Tokens::$emptyTokens, ( $stackPtr - 1 ), null, true );
 
-		$prev = $phpcsFile->findPrevious( PHP_CodeSniffer_Tokens::$emptyTokens, ( $stackPtr - 1 ), null, true );
+			if ( false !== $prev ) {
+				// Skip sniffing if calling a same-named method, or on function definitions.
+				if ( in_array( $tokens[ $prev ]['code'], array( T_FUNCTION, T_DOUBLE_COLON, T_OBJECT_OPERATOR ), true ) ) {
+					return;
+				}
 
-		if ( false !== $prev ) {
-			// Skip sniffing if calling a same-named method, or on function definitions.
-			if ( in_array( $tokens[ $prev ]['code'], array( T_FUNCTION, T_DOUBLE_COLON, T_OBJECT_OPERATOR ), true ) ) {
-				return;
+				// Skip namespaced functions, ie: \foo\bar() not \bar().
+				$pprev = $phpcsFile->findPrevious( PHP_CodeSniffer_Tokens::$emptyTokens, ( $prev - 1 ), null, true );
+				if ( false !== $pprev && T_NS_SEPARATOR === $tokens[ $prev ]['code'] && T_STRING === $tokens[ $pprev ]['code'] ) {
+					return;
+				}
 			}
-
-			// Skip namespaced functions, ie: \foo\bar() not \bar().
-			$pprev = $phpcsFile->findPrevious( PHP_CodeSniffer_Tokens::$emptyTokens, ( $prev - 1 ), null, true );
-			if ( false !== $pprev && T_NS_SEPARATOR === $tokens[ $prev ]['code'] && T_STRING === $tokens[ $pprev ]['code'] ) {
-				return;
-			}
+			unset( $prev, $pprev );
 		}
-		unset( $prev, $pprev );
 
 		// Get the closing parenthesis.
 		$openParenthesis = $phpcsFile->findNext( T_OPEN_PARENTHESIS, ( $stackPtr + 1 ) );

@@ -81,35 +81,38 @@ class WordPress_Sniffs_NamingConventions_ValidHookNameSniff implements PHP_CodeS
 	 * @return void
 	 */
 	public function process( PHP_CodeSniffer_File $phpcsFile, $stackPtr ) {
-		$tokens = $phpcsFile->getTokens();
-		$token  = $tokens[ $stackPtr ];
-		$regex  = $this->prepare_regex();
+		$tokens        = $phpcsFile->getTokens();
+		$token         = $tokens[ $stackPtr ];
+		$token_content = strtolower( $token['content'] );
+		$regex         = $this->prepare_regex();
 
 		// Check if one of the hook functions was found.
-		if ( ! isset( WordPress_Sniff::$hookInvokeFunctions[ $tokens[ $stackPtr ]['content'] ] ) ) {
+		if ( ! isset( WordPress_Sniff::$hookInvokeFunctions[ $token_content ] ) ) {
 			return;
 		}
 
 		// Ignore deprecated hook names.
-		if ( strpos( $tokens[ $stackPtr ]['content'], '_deprecated' ) > 0 ) {
+		if ( strpos( $token_content, '_deprecated' ) > 0 ) {
 			return;
 		}
 
-		$prev = $phpcsFile->findPrevious( T_WHITESPACE, ( $stackPtr - 1 ), null, true );
+		if ( isset( $tokens[ ( $stackPtr - 1 ) ] ) ) {
+			$prev = $phpcsFile->findPrevious( PHP_CodeSniffer_Tokens::$emptyTokens, ( $stackPtr - 1 ), null, true );
 
-		if ( false !== $prev ) {
-			// Skip sniffing if calling a same-named method, or on function definitions.
-			if ( in_array( $tokens[ $prev ]['code'], array( T_FUNCTION, T_DOUBLE_COLON, T_OBJECT_OPERATOR ), true ) ) {
-				return;
-			}
+			if ( false !== $prev ) {
+				// Skip sniffing if calling a same-named method, or on function definitions.
+				if ( in_array( $tokens[ $prev ]['code'], array( T_FUNCTION, T_DOUBLE_COLON, T_OBJECT_OPERATOR ), true ) ) {
+					return;
+				}
 
-			// Skip namespaced functions, ie: \foo\bar() not \bar().
-			$pprev = $phpcsFile->findPrevious( T_WHITESPACE, ( $prev - 1 ), null, true );
-			if ( false !== $pprev && T_NS_SEPARATOR === $tokens[ $prev ]['code'] && T_STRING === $tokens[ $pprev ]['code'] ) {
-				return;
+				// Skip namespaced functions, ie: \foo\bar() not \bar().
+				$pprev = $phpcsFile->findPrevious( PHP_CodeSniffer_Tokens::$emptyTokens, ( $prev - 1 ), null, true );
+				if ( false !== $pprev && T_NS_SEPARATOR === $tokens[ $prev ]['code'] && T_STRING === $tokens[ $pprev ]['code'] ) {
+					return;
+				}
 			}
+			unset( $prev, $pprev );
 		}
-		unset( $prev, $pprev );
 
 		/*
 		   Ok, so we have a proper hook call, let's find the position of the tokens

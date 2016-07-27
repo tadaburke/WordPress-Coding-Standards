@@ -534,7 +534,8 @@ abstract class WordPress_Sniff implements PHP_CodeSniffer_Sniff {
 	 */
 	protected function has_whitelist_comment( $comment, $stackPtr ) {
 
-		$end_of_line = $lastPtr = $this->get_last_ptr_on_line( $stackPtr );
+		$lastPtr     = $this->get_last_ptr_on_line( $stackPtr );
+		$end_of_line = $lastPtr;
 
 		// There is a findEndOfStatement() method, but it considers more tokens than
 		// we need to here.
@@ -655,7 +656,11 @@ abstract class WordPress_Sniff implements PHP_CodeSniffer_Sniff {
 		// If this is inside an isset(), check after it as well, all the way to the
 		// end of the scope.
 		if ( $in_isset ) {
-			$end = ( 0 === $start ) ? count( $tokens ) : $tokens[ $start ]['scope_closer'];
+			if ( 0 === $start ) {
+				$end = count( $tokens );
+			} else {
+				$end = $tokens[ $start ]['scope_closer'];
+			}
 		}
 
 		// Check if we've looked here before.
